@@ -1,0 +1,15 @@
+name: FIFO checks
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y iverilog yosys
+      - name: Simulate and synthesize
+        run: make sim synth
