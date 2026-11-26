@@ -6,10 +6,29 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Install tools
-        run: sudo apt-get update && sudo apt-get install -y iverilog yosys
-      - name: Simulate and synthesize
-        run: make sim synth
+      - name: Install OSS CAD Suite
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'oss-cad-suite.tgz'
+          $url = 'https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2026-11-25/oss-cad-suite-windows-x64-20261125.tgz'
+          curl.exe --fail --location --retry 3 --output $archive $url
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $expectedHash = '2153bf7a7f4fa43250ceac845307fd8c139a47bbbf39475dad0e6061874ccba9'
+          if ((Get-FileHash -Path $archive).Hash -ne $expectedHash) {
+            throw 'OSS CAD Suite checksum mismatch.'
+          }
+          tar.exe -xzf $archive -C $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify FIFO
+        shell: cmd
+        run: |
+          call "%RUNNER_TEMP%\oss-cad-suite\environment.bat" || exit /b 1
+          call run.bat sim || exit /b 1
+          if not exist build\sync_fifo.vcd exit /b 1
+          call run.bat synth || exit /b 1
+          call run.bat lint || exit /b 1
+          call run.bat clean || exit /b 1
+          if exist build\ exit /b 1

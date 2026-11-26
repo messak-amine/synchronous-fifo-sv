@@ -44,21 +44,21 @@ Directed stimulus covers initial reset, single and multiple word ordering, fill 
 
 ## Run locally
 
-Run these commands from the repository root. Icarus Verilog compiles the Verilog RTL and SystemVerilog testbench in SystemVerilog 2012 mode. Yosys synthesizes the RTL to generic cells and checks the netlist. GitHub Actions runs the simulation and synthesis commands on Linux.
+On Windows 10 or 11, install the [Windows x64 OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build#installation) in a path without spaces. Run the commands below from the repository root with the suite's tools on `PATH`. In Command Prompt, run `call C:\oss-cad-suite\environment.bat` to activate the suite. In PowerShell, use `. C:\oss-cad-suite\environment.ps1`. Adjust the path to match your installation.
 
-```sh
-make sim
-make synth
-make lint                     # Requires Verilator
-gtkwave build/sync_fifo.vcd   # Optional waveform analysis
-make clean
+```bat
+.\run.bat sim
+.\run.bat synth
+.\run.bat lint
+.\run.bat clean
 ```
 
-On Windows, run `run.bat` from Command Prompt with `iverilog` and `vvp` on PATH. It generates the same VCD under `build/`.
+Icarus Verilog compiles the RTL and testbench in SystemVerilog 2012 mode. It writes `build/sync_fifo.vcd`, which you can open with `gtkwave build/sync_fifo.vcd` before cleaning. Yosys synthesizes the RTL to generic cells and checks the netlist. Verilator runs the lint check. Running `run.bat` without an argument runs the simulation. GitHub Actions runs these commands on Windows.
 
 ## Repository layout
 
 - `rtl/sync_fifo.v` contains the synthesizable FIFO.
 - `tb/tb_sync_fifo.sv` contains the stimulus, scoreboard, and assertions.
-- `Makefile` and `run.bat` run the local tools.
-- `.github/workflows/ci.yml` runs the Linux checks.
+- `run.bat` runs the local Windows tools.
+- `Makefile` retains the original build and verification commands.
+- `.github/workflows/ci.yml` defines the automated checks.
