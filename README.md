@@ -40,9 +40,7 @@ Each accepted operation advances its own pointer. A rejected read leaves `data_o
 
 The driver changes requests on the falling edge. The scoreboard models FIFO order with a shifting array and computes expected results from its own occupancy. The monitor samples DUT outputs after the rising edge and nonblocking updates. Immediate assertions compare `data_out`, `rd_valid`, `count`, `full`, and `empty` and call `$fatal` on a mismatch.
 
-Directed stimulus covers initial reset, single and multiple word ordering, fill and drain, rejected requests, simultaneous requests at all three occupancy conditions, pointer wraparound, and reset with stored data. The directed phase must hit the required scenario counters before a fixed-seed sequence of 256 mixed request cycles runs.
-
-The local Icarus run passed 292 checked edges and generated a VCD. The scenario summary recorded 8 rejected writes, 18 rejected reads, and 15 wraparound sequences in each direction. Verilator lint passed, and Yosys generic synthesis and structural checks reported zero problems and no latch cells.
+Directed stimulus covers initial reset, single and multiple word ordering, fill and drain, rejected requests, simultaneous requests at all three occupancy conditions, pointer wraparound, and reset with stored data. The testbench checks that the directed phase exercises these corner cases, then uses `$urandom` with seed `32'h31415926` for 256 mixed request cycles. Repeated runs with the same simulator reproduce the sequence.
 
 ## Run locally
 
