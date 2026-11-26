@@ -60,5 +60,4 @@ Icarus Verilog compiles the RTL and testbench in SystemVerilog 2012 mode. It wri
 - `rtl/sync_fifo.v` contains the synthesizable FIFO.
 - `tb/tb_sync_fifo.sv` contains the stimulus, scoreboard, and assertions.
 - `run.bat` runs the local Windows tools.
-- `Makefile` retains the original build and verification commands.
 - `.github/workflows/ci.yml` defines the automated checks.
