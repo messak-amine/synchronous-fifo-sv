@@ -27,7 +27,7 @@ module tb_sync_fifo;
     integer cycle = 0;
     bit saw_occupied_reset = 0;
     bit saw_rejected_write = 0, saw_rejected_read = 0;
-    bit saw_both_middle = 0, saw_both_full = 0, saw_both_empty = 0;
+    bit saw_both_empty = 0, saw_both_partial = 0, saw_both_full = 0;
     integer reads_since_reset = 0, writes_since_reset = 0;
     integer slot;
 
@@ -62,9 +62,11 @@ module tb_sync_fifo;
             if (wr_en && !rd_en && !write_ok) saw_rejected_write = 1;
             if (rd_en && !wr_en && !expected_valid) saw_rejected_read = 1;
             if (wr_en && rd_en) begin
-                if (size == DEPTH) saw_both_full = 1;
-                else if (size == 0) saw_both_empty = 1;
-                else saw_both_middle = 1;
+                case (size)
+                    0:       saw_both_empty = 1;
+                    DEPTH:   saw_both_full = 1;
+                    default: saw_both_partial = 1;
+                endcase
             end
             if (expected_valid) begin
                 expected_data = model[0];
@@ -94,10 +96,11 @@ module tb_sync_fifo;
 
     integer i;
     localparam RANDOM_CYCLES = 256;
-    int seed = 32'h31415926;
-    logic [31:0] random_word;
 
     initial begin
+        int seed;
+        int unsigned random_word;
+
         $dumpfile("build/sync_fifo.vcd");
         $dumpvars(0, tb_sync_fifo);
 
@@ -123,10 +126,14 @@ module tb_sync_fifo;
         step(0, 1, 1, 'h99);     // Reset takes priority over requests
         step(1, 0, 1, 0);
 
-        assert (saw_occupied_reset && saw_rejected_write && saw_rejected_read &&
-                saw_both_middle && saw_both_empty && saw_both_full)
-            else $fatal(1, "Directed tests missed a required scenario");
+        assert (saw_occupied_reset)
+            else $fatal(1, "Directed tests missed reset with stored data");
+        assert (saw_rejected_write && saw_rejected_read)
+            else $fatal(1, "Directed tests missed a write to full or a read from empty");
+        assert (saw_both_empty && saw_both_partial && saw_both_full)
+            else $fatal(1, "Directed tests must issue both requests when empty, partially full, and full");
 
+        seed = 32'h31415926;
         random_word = $urandom(seed); // Seed the random stream once.
         repeat (RANDOM_CYCLES) begin
             random_word = $urandom;
