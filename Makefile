@@ -16,7 +16,7 @@ lint:
 	$(VERILATOR) --lint-only -Wall --top-module sync_fifo rtl/sync_fifo.v
 
 synth:
-	$(YOSYS) -p 'read_verilog rtl/sync_fifo.v; synth -top sync_fifo -noabc; select -assert-none t:$_DLATCH_*; check -assert'
+	$(YOSYS) -p 'read_verilog rtl/sync_fifo.v; synth -top sync_fifo -noabc; select -assert-none t:$$_DLATCH_*; check -assert'
 
 clean:
 	rm -rf build
